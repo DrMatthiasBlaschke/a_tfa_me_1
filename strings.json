@@ -1,0 +1,28 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Setup TFA.me station",
+        "description": "Please enter IP OR mDNS name of your TFA.me device.\n- mDNS: Name convention is 'tfa-me-XXX-XXX-XXX'\n(XXX-XXX-XXX is the 9 digit station ID.)\n- IP: Press and hold button '+' for 5 seconds at your device.",
+        "data": {
+          "host": "IP or host name",
+          "interval": "Request interval (Seconds)"
+        }
+      }
+    },
+    "error": {
+      "invalid_host": "Invalid IP or hostname."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Modify options",
+        "description": "Change request interval.",
+        "data": {
+          "interval": "Request interval (Seconds)"
+        }
+      }
+    }
+  }
+}
