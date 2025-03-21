@@ -7,7 +7,9 @@
             "user": {
                 "data": {
                     "host": "IP or host name",
-                    "interval": "Request interval (Seconds)"
+                    "interval": "Request interval (Seconds)",
+                    "ip_address": "IP addres or mDNS name",
+                    "multiple_entities": "Sensors received via different stations are different entities."
                 },
                 "description": "Please enter IP OR mDNS name of your TFA.me device.\n- mDNS: Name convention is 'tfa-me-XXX-XXX-XXX'\n(XXX-XXX-XXX is the 9 digit station ID.)\n- IP: Press and hold button '+' for 5 seconds at your device.",
                 "title": "Setup TFA.me station"
@@ -18,10 +20,11 @@
         "step": {
             "init": {
                 "data": {
-                    "interval": "Request interval (Seconds)"
+                    "interval": "Request interval (Seconds)",
+                    "select_option": "Select an option:"
                 },
-                "description": "Change request interval.",
-                "title": "Modify options"
+                "description": "Select a menu entry.",
+                "title": "Modify options, perform action"
             }
         }
     }
