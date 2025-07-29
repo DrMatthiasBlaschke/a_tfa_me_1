@@ -1,15 +1,12 @@
 """TFA.me station integration: sensor.py."""
 
 from collections import deque
-from datetime import datetime  # , timedelta
+from datetime import datetime
 import logging
 from typing import Any
 
-from homeassistant.components.a_tfa_me_1 import TFAmeConfigEntry
-
-# from homeassistant.components.recorder import history
 from homeassistant.components.sensor import SensorEntity, StateType
-from homeassistant.const import STATE_UNAVAILABLE
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -54,7 +51,7 @@ ICON_MAPPING = {
     },
 }
 
-# Short description of all station & sensors
+# Short description of all stations & sensors
 DEVICE_MAPPING = {
     # Stations
     "01": "Station 01: T/H",
@@ -79,8 +76,8 @@ DEVICE_MAPPING = {
     # Add other sensors here ...
 }
 
-# Timeout time use sensor marked "old"/unavaiable
-# Rule: Timeout time = 2 * (transmssion interval in seconds) + 30
+# Timeout time use sensor marked "old"/unavailable
+# Rule: Timeout time = 2 * (transmission interval in seconds) + 30
 TIMEOUT_FOR_1_MIN = (2 * 1 * 60) + 30
 TIMEOUT_FOR_5_MIN = (2 * 5 * 60) + 30
 TIMEOUT_FOR_120_MIN = (2 * 120 * 60) + 30
@@ -114,7 +111,7 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: TFAmeConfigEntry,
+    entry: ConfigEntry,  # TFAmeConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up TFA.me as Sensor."""
@@ -157,7 +154,7 @@ async def async_setup_entry(
         if new_sensors:
             async_add_entities(new_sensors)
 
-    # Speichere die Funktion in Home Assistant, damit der Service sie aufrufen kann
+    # Save function in Home Assistant so that it can be called as service
     hass.data[DOMAIN][
         entry.entry_id
     ].async_discover_new_entities = async_discover_new_entities
@@ -184,12 +181,12 @@ class TFAmeSensorEntity(SensorEntity):
         self._attr_icon = ""
         self._attr_unique_id = entity_id  # just the entity ID
         self._attr_name = entity_id  # just the entity ID
+        ids_str = f"{sensor_id}_{self.gateway_id}"
         self._attr_device_info = {
             "identifiers": {
                 (
                     DOMAIN,
-                    sensor_id,
-                    self.gateway_id,
+                    ids_str,
                 )  # this IDs are used to ground entities tom sensors
             },  # Unique ID for device/sensor
             "name": self.format_string_tfa_id(
@@ -203,7 +200,6 @@ class TFAmeSensorEntity(SensorEntity):
         }
         # History
         self.rain_history: SensorHistory = SensorHistory(max_age_minutes=60)
-        # self.rain_history.__init__()
 
         # When this is a station add URL to station
         hex_value = int(sensor_id[:2], 16)
@@ -258,7 +254,7 @@ class TFAmeSensorEntity(SensorEntity):
             str3 = str2.replace("Co2", "CO2")
             return str3.replace("_", " ")
         except (ValueError, TypeError, KeyError):
-            return None
+            return "None"
 
     # ---- Property: Name of measurement value in HA: "measurement", e.g. "temperature" ----
     @property
@@ -273,10 +269,11 @@ class TFAmeSensorEntity(SensorEntity):
 
     # ---- Property: measurement value of an entity itself ----
     @property
-    def state(self) -> None | int | float | str | StateType:
+    # def state(self) -> None | int | float | str | StateType:
+    def native_value(self) -> StateType:  # None | int | float | str | StateType:
         """Actual measurement value."""
         try:
-            # Is measurment value still valid or old
+            # Is measurement value still valid or old
             last_update_ts: int = int(self.coordinator.data[self.entity_id]["ts"])
             utc_now = datetime.now()
             utc_now_ts = int(utc_now.timestamp())
@@ -284,7 +281,7 @@ class TFAmeSensorEntity(SensorEntity):
             if (utc_now_ts - last_update_ts) <= (timeout):
                 measurement_value = self.coordinator.data[self.entity_id]["value"]
 
-                # Is this rain sensor reletive values
+                # Is this rain sensor relative values
                 if "rain_rel" in self.entity_id:
                     reset_rain = self.coordinator.data[self.entity_id]["reset_rain"]
                     if reset_rain:
@@ -310,14 +307,19 @@ class TFAmeSensorEntity(SensorEntity):
                             measurement_value = float(newest[0]) - float(oldest[0])
                             measurement_value = round(measurement_value, 1)
                     except Exception as error:
-                        msg: str = "Exception requesting data: " + str(error.__doc__)
+                        msg: str = (
+                            "Exception requesting data: str_rain = '"
+                            + str_rain
+                            + "' "
+                            + str(error.__doc__)
+                        )
                         _LOGGER.error(msg)
                         measurement_value = float(0)
                         measurement_value = round(measurement_value, 1)
                         raise
 
             else:
-                measurement_value = STATE_UNAVAILABLE
+                measurement_value = None  # STATE_UNAVAILABLE  #   None  # TO.DO insert again or use other value STATE_UNAVAILABLE
 
         except (ValueError, TypeError, KeyError):
             return None  # Wrong data, Home Assistant shows sensor as "unavailable"
@@ -326,7 +328,8 @@ class TFAmeSensorEntity(SensorEntity):
 
     # ---- Property: Unit of measurement value, e.g. for wind speed unit is "m/s" ----
     @property
-    def unit_of_measurement(self) -> str | None:
+    # def unit_of_measurement(self) -> str | None:
+    def native_unit_of_measurement(self) -> str | None:
         """Unit of measurement value."""
         try:
             unit = self.coordinator.data[self.entity_id]["unit"]
@@ -360,26 +363,24 @@ class TFAmeSensorEntity(SensorEntity):
     @property
     def icon(self) -> str:
         """Returns icon based on actual measurement value."""
-        value = self.state  # actual value
-        # Verify that "value" is a Float
-        try:
-            value = float(value)
-        except (TypeError, ValueError):
-            # return "mdi:help"  # Fallback-Icon for invalid values
-            value = float(0)
-            return self.get_icon(self.measurement_name, value)
+        value = self.native_value  # self.state  # actual value
         # get the icon
         return self.get_icon(self.measurement_name, value)
 
     # ---- Get an icon for measurement type based on measurement value (see MDI list) ----
-    def get_icon(self, measurement_type, value):
+    def get_icon(self, measurement_type, value_state):
         """Return icon for a sensor type."""
+
+        if value_state is None:
+            value = value_state  # use None
+        else:
+            value = float(value_state)
 
         # Temperature & temperatue probe
         if (measurement_type == "temperature") | (
             measurement_type == "temperature_probe"
         ):
-            if value == STATE_UNAVAILABLE:
+            if value is None:
                 return ICON_MAPPING["temperature"]["default"]
             if value >= 25:
                 return ICON_MAPPING["temperature"]["high"]
@@ -389,7 +390,7 @@ class TFAmeSensorEntity(SensorEntity):
 
         # Humidity
         if measurement_type == "humidity":
-            if value == STATE_UNAVAILABLE:
+            if value is None:
                 return ICON_MAPPING["humidity"]["default"]
             if (value >= 65) | (value <= 30):
                 return ICON_MAPPING["humidity"]["alert"]
@@ -405,7 +406,7 @@ class TFAmeSensorEntity(SensorEntity):
 
         # RSSI value for 868 MHz reception: range 0...255
         if measurement_type == "rssi":
-            if value == STATE_UNAVAILABLE:
+            if value is None:
                 return ICON_MAPPING["rssi"]["weak"]
 
             if value < 100:
@@ -443,7 +444,7 @@ class TFAmeSensorEntity(SensorEntity):
     # Remark: there are only 8 arrows for direction but 16 wind direction so icon does not match optimal
     def get_wind_direction_icon(self, value):
         """Return icon for wind direction based on value 0 to 15."""
-        if value == STATE_UNAVAILABLE:
+        if value is None:
             return "mdi:compass-outline"
 
         if 0 <= value <= 1:
@@ -479,37 +480,15 @@ class TFAmeSensorEntity(SensorEntity):
         """Manual Updating."""
         await self.coordinator.async_request_refresh()
 
-    """
-    # ----  ----
-    async def get_sensor_history(self, entity_id, hours=1):
-        "" "Get history from some hours for a sensor."" "
-        start_time = datetime.now() - timedelta(hours=hours)
-        end_time = datetime.now()
-        states = []
-        try:
-            states = await self.hass.async_add_executor_job(
-                history.get_significant_states,
-                self.hass,
-                start_time,
-                end_time,
-                [entity_id],
-            )
-            return states.get(entity_id, [])
 
-        except Exception as error:
-            states = []
-
-        return states
-    """
-
-
+# ---- Class to store history, specially for rain sensor to calculate rain of "last hour" ----
 class SensorHistory:
     """History queue."""
 
     def __init__(self, max_age_minutes=60) -> None:
         """Initalaize history queue."""
         self.max_age = max_age_minutes * 60
-        self.data = deque()  # Stores (value, timestamp)
+        self.data: deque[tuple[float, int]] = deque()  # Stores (value, timestamp)
 
     def add_measurement(self, value, ts):
         """Add new value with time stamp."""
@@ -530,11 +509,11 @@ class SensorHistory:
                 run = 0
 
     def get_data(self):
-        """Retun list with values."""
+        """Return list with values."""
         return list(self.data)
 
     def get_oldest_and_newest(self):
-        """Return oldest and newest measuerement tupel."""
+        """Return oldest and newest measuerement tuple."""
         if not self.data:
             return None, None  # If list is empty
         return self.data[0], self.data[-1]  # First and last entry

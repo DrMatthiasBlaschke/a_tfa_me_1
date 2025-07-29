@@ -1,17 +1,17 @@
 {
     "config": {
         "error": {
-            "invalid_host": "Invalid IP or hostname."
+            "invalid_host": "Invalid IP or station ID."
         },
         "step": {
             "user": {
                 "data": {
                     "host": "IP or host name",
                     "interval": "Request interval (Seconds)",
-                    "ip_address": "IP addres or mDNS name",
-                    "multiple_entities": "Sensors received via different stations are different entities."
+                    "ip_address": "IP address or station ID",
+                    "multiple_entities": "Sensors received via different stations are different entities. When you have only one station don't check this box."
                 },
-                "description": "Please enter IP OR mDNS name of your TFA.me device.\n- mDNS: Name convention is 'tfa-me-XXX-XXX-XXX'\n(XXX-XXX-XXX is the 9 digit station ID.)\n- IP: Press and hold button '+' for 5 seconds at your device.",
+                "description": "Please enter IP or station ID of your TFA.me station.\n- 9 digit station ID: 'XXX-XXX-XXX'\n- mDNS name:'tfa-me-XXX-XXX-XXX.local'\n- Get IP: Press and hold button '+' for 5 seconds at your device.",
                 "title": "Setup TFA.me station"
             }
         }

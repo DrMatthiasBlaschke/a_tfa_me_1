@@ -1,12 +1,13 @@
 {
   "domain": "a_tfa_me_1",
   "name": "TFA.me station",
-  "after_dependencies": ["sensor", "button"],
+  "after_dependencies": ["sensor"],
   "codeowners": ["@DrMatthiasBlaschke"],
   "config_flow": true,
   "documentation": "https://www.home-assistant.io/integrations/tfa",
   "integration_type": "hub",
   "iot_class": "local_polling",
   "quality_scale": "bronze",
-  "requirements": ["aiohttp==3.11.12"]
+  "requirements": ["aiohttp==3.11.12"],
+  "version": "0.0.1"
 }

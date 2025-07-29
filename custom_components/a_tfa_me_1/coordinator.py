@@ -31,14 +31,15 @@ class TFAmeDataCoordinator(DataUpdateCoordinator):
         self.host = host
         self.first_init = 0
         self.ha = hass
-        self.sensor_entity_list = []  # [Entity ID strings]
+        self.sensor_entity_list = [str]  # [Entity ID strings]
         self.reset_rain_sensors = False
         self.multiple_entities = multiple_entities
         self.gateway_id = ""
+        self.poll_interval = interval
 
         # self.devices = hass.config_entry.data.get("tfa_me_stations", [])
 
-        super().__init__(hass, _LOGGER, name=DOMAIN, update_interval=interval)
+        super().__init__(hass, _LOGGER, name=DOMAIN, update_interval=self.poll_interval)
 
     async def _async_update_data(self):
         """Request and update data."""
@@ -47,7 +48,12 @@ class TFAmeDataCoordinator(DataUpdateCoordinator):
         # Try to get an IP for a mDNS host name:
         # - when IP can be solved it returns the IP
         # - when it is an IP it just returns the IP
-        resolved_host = await self.resolve_mdns(self.host)
+        if "-" in self.host:
+            # station ID, contains "-"
+            mdns_name = f"tfa-me-{self.host:}.local"
+            resolved_host = await self.resolve_mdns(mdns_name)
+        else:
+            resolved_host = self.host
 
         # Build the URL to the device and request all available sensors
         url = f"http://{resolved_host}/sensors"
@@ -95,8 +101,8 @@ class TFAmeDataCoordinator(DataUpdateCoordinator):
                                 }
 
                                 if measurement == "rain":
-                                    entity_id = f"sensor.{gateway_id}_{sensor_id}_{measurement}_rel"  # Entity ID
-                                    parsed_data[entity_id] = {
+                                    entity_id_2 = f"{entity_id}_rel"  # Entity ID
+                                    parsed_data[entity_id_2] = {
                                         "sensor_id": sensor_id,
                                         "gateway_id": gateway_id,
                                         "sensor_name": f"{sensor['name']} rel",
@@ -109,8 +115,8 @@ class TFAmeDataCoordinator(DataUpdateCoordinator):
                                         "ts": sensor["ts"],
                                         "reset_rain": self.reset_rain_sensors,
                                     }
-                                    entity_id = f"sensor.{gateway_id}_{sensor_id}_{measurement}_hour"  # Entity ID
-                                    parsed_data[entity_id] = {
+                                    entity_id_3 = f"{entity_id}_hour"  # Entity ID
+                                    parsed_data[entity_id_3] = {
                                         "sensor_id": sensor_id,
                                         "gateway_id": gateway_id,
                                         "sensor_name": f"{sensor['name']} hour",
