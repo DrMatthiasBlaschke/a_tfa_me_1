@@ -12,6 +12,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
+# from homeassistant.helpers import aiohttp_client
+# "requirements": ["aiohttp==3.11.12"],
 from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
