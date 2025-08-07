@@ -448,21 +448,21 @@ class TFAmeSensorEntity(SensorEntity):
             return "mdi:compass-outline"
 
         if 0 <= value <= 1:
-            return "mdi:compass-outline"  # N (North)
+            return "mdi:arrow-down"  # N (North)
         if 2 <= value <= 3:
-            return "mdi:arrow-top-right"  # NE (North-East)
+            return "mdi:aarrow-bottom-left"  # NE (North-East)
         if 4 <= value <= 5:
-            return "mdi:arrow-right"  # E (East)
+            return "mdi:arrow-left"  # E (East)
         if 6 <= value <= 7:
-            return "mdi:arrow-bottom-right"  # SE (South-East)
+            return "mdi:arrow-top-left"  # SE (South-East)
         if 8 <= value <= 9:
-            return "mdi:arrow-down"  # S (South)
+            return "mdi:arrow-up"  # S (South)
         if 10 <= value <= 11:
-            return "mdi:arrow-bottom-left"  # SW (South-West)t
+            return "mdi:arrow-top-right"  # SW (South-West)t
         if 12 <= value <= 13:
-            return "mdi:arrow-left"  # W (West)
+            return "mdi:arrow-right"  # W (West)
         if 14 <= value <= 15:
-            return "mdi:arrow-top-left"  # NW (North-West)
+            return "mdi:arrow-bottom-right"  # NW (North-West)
         return "mdi:compass-outline"  # Fallback, should not happen
 
     # ---- Get the timeout time for a station or a sensor ----

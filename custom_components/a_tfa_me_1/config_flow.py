@@ -21,7 +21,7 @@ from homeassistant.helpers.selector import (
     SelectSelectorMode,
 )
 
-from .const import CONF_INTERVAL, CONF_MULTIPLE_ENTITIES, DEFAULT_NAME, DOMAIN
+from .const import CONF_INTERVAL, CONF_MULTIPLE_ENTITIES, DOMAIN
 from .data import TFAmeData, TFAmeException
 
 # Scheme for IP/Domain and poll interval
@@ -90,9 +90,9 @@ class TFAmeConfigFlow(ConfigFlow, domain=DOMAIN):
         # if user_input is not None:
         if is_valid_ip_or_tfa_me(user_input):
             # host_str = user_input.get("ip_address")  # Get value as string
-            title_str: str = DEFAULT_NAME  # "TFA.me Station"
+            title_str: str = "TFA.me Station"
             if isinstance(ip_host_str, str):
-                title_str = DEFAULT_NAME + " '" + ip_host_str.upper() + "'"
+                title_str = "TFA.me Station '" + ip_host_str.upper() + "'"
 
             try:
                 # device_list = self._load_device_list()
