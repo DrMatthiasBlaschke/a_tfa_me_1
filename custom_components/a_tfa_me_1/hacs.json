@@ -4,6 +4,6 @@
   "domain": "a_tfa_me_1",
   "repository": "https://github.com/DrMatthiasBlaschke/a_tfa_me_1",
   "documentation": "https://github.com/DrMatthiasBlaschke/a_tfa_me_1",
-  "requirements": ["aiohttp==3.11.12"],
+  "requirements": [],
   "codeowners": ["@DrMatthiasBlaschke"]
 }
